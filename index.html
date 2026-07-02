@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Bijuteria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F5;
+    --card:#FFFFFF;
+    --ink:#2A2226;
+    --ink-soft:#6E6066;
+    --line:#EBE1DA;
+    --gold:#A9812F;
+    --gold-deep:#8A6A2B;
+    --metal:linear-gradient(100deg,#8A6A2B 0%,#D9B65F 35%,#F0D9A0 50%,#D9B65F 65%,#8A6A2B 100%);
+    --rose:#B65D6E;
+    --rose-soft:#F7E9EC;
+    --green:#3E7A57;
+    --green-soft:#E9F2EC;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(42,34,38,.05),0 4px 14px rgba(42,34,38,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.5;
+    padding-bottom:48px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+
+  /* ---------- header ---------- */
+  header{padding:28px 0 0}
+  .brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  h1{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;font-size:clamp(26px,5vw,34px);
+    letter-spacing:-.01em;
+  }
+  .brand small{color:var(--ink-soft);font-size:13px}
+  .hairline{height:3px;border-radius:3px;background:var(--metal);margin:14px 0 18px}
+
+  /* ---------- stat chips ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;box-shadow:var(--shadow);
+  }
+  .stat b{
+    display:block;font-family:'Fraunces',Georgia,serif;font-weight:600;
+    font-size:clamp(17px,2.6vw,22px);font-variant-numeric:tabular-nums;margin-top:2px;
+  }
+  .stat span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+  .stat.pos b{color:var(--green)}
+  .stat.gold b{color:var(--gold-deep)}
+
+  /* ---------- tabs ---------- */
+  nav{
+    position:sticky;top:0;z-index:20;background:var(--bg);
+    padding:8px 0 0;margin-bottom:18px;border-bottom:1px solid var(--line);
+  }
+  .tabs{display:flex;gap:4px;max-width:1080px;margin:0 auto;padding:0 16px}
+  .tab{
+    appearance:none;border:0;background:transparent;cursor:pointer;
+    font:inherit;font-weight:600;color:var(--ink-soft);
+    padding:10px 14px;border-radius:10px 10px 0 0;position:relative;
+    flex:1 1 0;text-align:center;white-space:nowrap;
+  }
+  .tab[aria-selected="true"]{color:var(--ink)}
+  .tab[aria-selected="true"]::after{
+    content:"";position:absolute;left:10%;right:10%;bottom:-1px;height:3px;
+    background:var(--metal);border-radius:3px;
+  }
+  .tab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* ---------- cards / sections ---------- */
+  section[hidden]{display:none}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px;margin-bottom:18px;
+  }
+  .card h2{
+    font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:19px;margin-bottom:12px;
+  }
+
+  /* ---------- forms ---------- */
+  form.grid{display:grid;gap:12px;grid-template-columns:repeat(12,1fr)}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:12px;font-weight:600;color:var(--ink-soft)}
+  input,select{
+    font:inherit;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;
+  }
+  input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+  .c3{grid-column:span 3}.c4{grid-column:span 4}.c6{grid-column:span 6}.c12{grid-column:span 12}
+  @media(max-width:720px){.c3,.c4,.c6{grid-column:span 6}.m12{grid-column:span 12}}
+  .btn{
+    appearance:none;border:0;cursor:pointer;font:inherit;font-weight:600;
+    border-radius:10px;padding:11px 18px;transition:filter .15s;
+  }
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .btn:hover{filter:brightness(1.05)}
+  .btn-primary{background:var(--ink);color:#fff}
+  .btn-gold{background:var(--metal);color:#3A2C10}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .preview{
+    grid-column:span 12;background:var(--rose-soft);border-radius:10px;
+    padding:10px 14px;font-size:13px;color:var(--ink);display:none;
+  }
+  .preview.show{display:block}
+  .preview b{font-variant-numeric:tabular-nums}
+
+  /* ---------- tables ---------- */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+  th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-soft);background:#FBF6EE;
+    padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#FCFAF7}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tfoot td{font-weight:600;background:#FBF6EE}
+  .del{
+    appearance:none;border:0;background:transparent;cursor:pointer;
+    color:var(--ink-soft);font-size:16px;line-height:1;padding:4px 8px;border-radius:8px;
+  }
+  .del:hover{color:var(--rose);background:var(--rose-soft)}
+  .empty{padding:28px;text-align:center;color:var(--ink-soft);font-size:14px}
+
+  /* ---------- misc ---------- */
+  details.settings{margin-bottom:18px}
+  details.settings summary{
+    cursor:pointer;font-weight:600;font-size:13px;color:var(--ink-soft);
+    padding:6px 2px;list-style:none;
+  }
+  details.settings summary::before{content:"⚙ "}
+  .settings-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}
+  @media(max-width:720px){.settings-grid{grid-template-columns:repeat(2,1fr)}}
+  .hint{font-size:12.5px;color:var(--ink-soft);margin-top:10px}
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);
+    background:var(--ink);color:#fff;padding:11px 20px;border-radius:12px;
+    font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);
+    opacity:0;transition:transform .25s,opacity .25s;z-index:50;max-width:92vw;text-align:center;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="brand">
+    <h1>Controle Bijuteria</h1>
+    <small id="saveState">dados salvos neste navegador</small>
+    <small id="syncState" style="display:none;color:var(--green);font-weight:600"></small>
+  </div>
+  <div class="hairline" aria-hidden="true"></div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<nav>
+  <div class="tabs" role="tablist" aria-label="Planilhas">
+    <button class="tab" role="tab" id="tab-controle" aria-selected="true"  aria-controls="pane-controle">Estoque</button>
+    <button class="tab" role="tab" id="tab-vendas"   aria-selected="false" aria-controls="pane-vendas">Vendas</button>
+    <button class="tab" role="tab" id="tab-invest"   aria-selected="false" aria-controls="pane-invest">Investimentos</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ============ ESTOQUE / CONTROLE ============ -->
+  <section id="pane-controle" role="tabpanel" aria-labelledby="tab-controle">
+    <details class="settings">
+      <summary>Percentuais de cálculo</summary>
+      <div class="card" style="margin-top:8px">
+        <div class="settings-grid">
+          <div class="field"><label for="cfgDespesas">Despesas %</label><input type="number" id="cfgDespesas" step="1" min="0"></div>
+          <div class="field"><label for="cfgImposto">Imposto %</label><input type="number" id="cfgImposto" step="1" min="0"></div>
+          <div class="field"><label for="cfgLucro">Lucro %</label><input type="number" id="cfgLucro" step="1" min="0"></div>
+          <div class="field"><label for="cfgPlataforma">Plataforma %</label><input type="number" id="cfgPlataforma" step="1" min="0"></div>
+        </div>
+        <p class="hint">Aplicados só a itens novos. Preço venda = custo + despesas + imposto + lucro. Venda online = preço venda + plataforma.</p>
+      </div>
+    </details>
+
+    <div class="card">
+      <h2>Adicionar peça ao estoque</h2>
+      <form class="grid" id="formControle" autocomplete="off">
+        <div class="field c3 m12"><label for="ctData">Data</label><input type="date" id="ctData" required></div>
+        <div class="field c6 m12"><label for="ctProduto">Produto</label><input type="text" id="ctProduto" placeholder="Ex.: Anel Folheado" required list="listaProdutos"></div>
+        <div class="field c3"><label for="ctQtd">Quantidade</label><input type="number" id="ctQtd" min="1" step="1" value="1" required></div>
+        <div class="field c3"><label for="ctCusto">Custo unitário (R$)</label><input type="text" id="ctCusto" inputmode="decimal" placeholder="12,00" required></div>
+        <div class="preview" id="ctPreview"></div>
+        <div class="c12 btn-row">
+          <button type="submit" class="btn btn-primary">Adicionar peça</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Estoque</h2>
+      <div class="tbl-wrap"><table id="tblControle"></table></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-gold" data-export="controle">⬇ Baixar CSV do estoque</button>
+        <label class="btn btn-ghost">⬆ Importar CSV<input type="file" accept=".csv" data-import="controle" hidden></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VENDAS ============ -->
+  <section id="pane-vendas" role="tabpanel" aria-labelledby="tab-vendas" hidden>
+    <div class="card">
+      <h2>Registrar venda</h2>
+      <form class="grid" id="formVendas" autocomplete="off">
+        <div class="field c3 m12"><label for="vdData">Data</label><input type="date" id="vdData" required></div>
+        <div class="field c6 m12"><label for="vdNome">Cliente</label><input type="text" id="vdNome" placeholder="Nome da cliente" required></div>
+        <div class="field c3"><label for="vdQtd">Quantidade</label><input type="number" id="vdQtd" min="1" step="1" value="1" required></div>
+        <div class="field c6 m12"><label for="vdProduto">Produto</label><input type="text" id="vdProduto" placeholder="Ex.: Colar Letra Prata" required list="listaProdutos"></div>
+        <div class="field c3"><label for="vdValor">Valor (R$)</label><input type="text" id="vdValor" inputmode="decimal" placeholder="45,00" required></div>
+        <div class="c12 btn-row">
+          <button type="submit" class="btn btn-primary">Registrar venda</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Vendas realizadas</h2>
+      <div class="tbl-wrap"><table id="tblVendas"></table></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-gold" data-export="vendas">⬇ Baixar CSV de vendas</button>
+        <label class="btn btn-ghost">⬆ Importar CSV<input type="file" accept=".csv" data-import="vendas" hidden></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INVESTIMENTOS ============ -->
+  <section id="pane-invest" role="tabpanel" aria-labelledby="tab-invest" hidden>
+    <div class="card">
+      <h2>Adicionar valor investido</h2>
+      <form class="grid" id="formInvest" autocomplete="off">
+        <div class="field c6 m12"><label for="ivDesc">Descrição</label><input type="text" id="ivDesc" placeholder="Ex.: Investimento, Frete, Embalagens" required></div>
+        <div class="field c3"><label for="ivValor">Valor (R$)</label><input type="text" id="ivValor" inputmode="decimal" placeholder="800,00" required></div>
+        <div class="c12 btn-row">
+          <button type="submit" class="btn btn-primary">Adicionar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Valores investidos</h2>
+      <div class="tbl-wrap"><table id="tblInvest"></table></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-gold" data-export="invest">⬇ Baixar CSV de investimentos</button>
+        <label class="btn btn-ghost">⬆ Importar CSV<input type="file" accept=".csv" data-import="invest" hidden></label>
+      </div>
+    </div>
+  </section>
+
+  <div class="card" id="syncCard">
+    <h2>Sincronizar com o Google Sheets</h2>
+    <form class="grid" id="formSync" autocomplete="off">
+      <div class="field c12"><label for="syUrl">URL do App da Web (Apps Script)</label>
+        <input type="url" id="syUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <div class="field c6 m12"><label for="syToken">Senha (a mesma definida no script)</label>
+        <input type="password" id="syToken" placeholder="senha do script"></div>
+      <div class="c12 btn-row">
+        <button type="submit" class="btn btn-gold">Conectar e sincronizar</button>
+        <button type="button" class="btn btn-ghost" id="syncOff" hidden>Desconectar</button>
+        <span class="hint" id="syncHint" style="margin:0"></span>
+      </div>
+    </form>
+    <p class="hint">Com a conexão ativa, cada peça, venda ou investimento que você adicionar (ou excluir) é gravado automaticamente na sua planilha do Google. As instruções de configuração estão no README do repositório.</p>
+  </div>
+
+  <div class="card" style="border-style:dashed">
+    <div class="btn-row">
+      <button class="btn btn-gold" id="exportAll">⬇ Baixar os 3 CSVs</button>
+      <button class="btn btn-ghost" id="resetAll">Restaurar dados originais</button>
+    </div>
+    <p class="hint">Para atualizar o GitHub: baixe os CSVs e substitua os arquivos no repositório. Tudo que você digita fica salvo automaticamente neste navegador.</p>
+  </div>
+
+</main>
+
+<datalist id="listaProdutos"></datalist>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Controle Bijuteria — página única (HTML+CSS+JS), sem dependências.
+   Dados persistem em localStorage; exporta/importa os mesmos CSVs
+   do Google Sheets original.
+===================================================================== */
+
+/* ---------- dados originais (seed) ---------- */
+const SEED = {
+invest: `Investimento,"R$ 800,00"
+Frete,"R$ 60,00"`,
+controle: `Data,QUANTIDADE,PRODUTO,CUSTO,VALOR TOTAL,DESPESAS 25%,IMPOSTO 16%,LUCRO 130%,PREÇO VENDA,CUSTO PLATAFORMA 19%,VALOR VENDA ONLINE
+01/05/2026,1,Anel Folheado,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
+01/05/2026,1,Anel Cravejado Folheado ,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
+01/05/2026,1,Anel Cravejado Folheado Numeração,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
+01/05/2026,1,Anel Numeração,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
+01/05/2026,1,Anel Relógio,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/05/2026,2,Bracelete Coral,"R$ 10,00","R$ 20,00","R$ 2,50","R$ 1,60","R$ 15,00","R$ 29,10","R$ 5,82","R$ 34,92"
+01/05/2026,1,Bracelete Com Flores,"R$ 10,00","R$ 10,00","R$ 2,50","R$ 1,60","R$ 15,00","R$ 29,10","R$ 5,82","R$ 34,92"
+01/05/2026,2,Riviera Pontas ,"R$ 20,00","R$ 40,00","R$ 5,00","R$ 3,20","R$ 30,00","R$ 58,20","R$ 11,64","R$ 69,84"
+01/05/2026,2,Colar Delicado,"R$ 16,00","R$ 32,00","R$ 4,00","R$ 2,56","R$ 24,00","R$ 46,56","R$ 9,31","R$ 55,87"
+01/05/2026,2,"Kit Pérola (brinco, colar e pulseira)","R$ 25,00","R$ 50,00","R$ 6,25","R$ 4,00","R$ 37,50","R$ 72,75","R$ 14,55","R$ 87,30"
+01/05/2026,1,"Kit Cravejado Folheado (brinco, colar e pulseira)","R$ 25,00","R$ 25,00","R$ 6,25","R$ 4,00","R$ 37,50","R$ 72,75","R$ 14,55","R$ 87,30"
+01/05/2026,2,Aro Delicado,"R$ 12,00","R$ 24,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
+01/05/2026,2,Colar Aro,"R$ 16,00","R$ 32,00","R$ 4,00","R$ 2,56","R$ 24,00","R$ 46,56","R$ 9,31","R$ 55,87"
+01/05/2026,2,Colar Inspiração ,"R$ 15,00","R$ 30,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/05/2026,3,Colar Letras Cravejado,"R$ 15,00","R$ 45,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/05/2026,1,Kit Completo Aço Inoxidável,"R$ 30,00","R$ 30,00","R$ 7,50","R$ 4,80","R$ 45,00","R$ 87,30","R$ 17,46","R$ 104,76"
+01/06/2026,1,Brinco Pizza Dourado Pedra Branca ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Brinco Pizza Prata Pedra Branca ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Brinco Pizza Dourado Pedra Verde,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Brinco Coração Prata Pedra Verde ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Brinco Inspiração Dourado Pedra Verde,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Brinco Inspiração Dourado Pedra Branca ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,2,Brinco 2 Corações Verde Esmeralda ,"R$ 18,00","R$ 36,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Brinco 2 Corações Verde Claro,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Brinco 2 Corações Preto ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Brinco 2 Corações Vermelho ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Brinco 2 Corações Rosa ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Brinco Estilo 2 Pizza Prata Com Pedra Branca ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,3,Bracelete Mandamentos ,"R$ 18,00","R$ 54,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Bracelete Estilo Relógio ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
+01/06/2026,1,Pandora Prata Coroa ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Pandora Dourado Coroa,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Pandora Cravejado Dourado ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Pandora Cravejado Prata ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
+01/06/2026,1,Conjunto Color ,"R$ 35,00","R$ 35,00","R$ 8,75","R$ 5,60","R$ 52,50","R$ 101,85","R$ 20,37","R$ 122,22"
+01/06/2026,1,Conjunto Coração Riviera ,"R$ 35,00","R$ 35,00","R$ 8,75","R$ 5,60","R$ 52,50","R$ 101,85","R$ 20,37","R$ 122,22"`,
+vendas: `Data,Nome,Quantidade,Produto,Valor
+08/06/2026,Marli São Pedro ,1,Bracelete Mandamento ,"R$ 54,00"
+08/06/2026,Marli São Pedro ,1,Pulseira Pandora ,"R$ 45,00"
+08/06/2026,Ana Paula Belém ,1,Colar Letra Prata ,"R$ 45,00"
+08/06/2026,Sandra Appolari ,1,Brinco Cravejado Coração ,"R$ 52,50"
+08/06/2026,Marselha ,1,Anel Inspiração em X ,"R$ 35,00"
+08/06/2026,Nice ,1,Colar Letra Prata ,"R$ 45,00"
+08/06/2026,Patrícia ,1,Anel Cravejado ,"R$ 45,00"
+08/06/2026,Patrícia ,1,Pulseira Mandamentos ,"R$ 45,00"
+08/06/2026,Solange,1,Pulseira Mandamentos ,"R$ 54,00"
+11/06/2026,Patrícia Raissa ,1,Brinco 2 corações cravejado vermelho ,"R$ 52,50"
+11/06/2026,Fabiana estética ,1,Conjunto color ,"R$ 102,00"
+11/06/2026,Fernanda loira ,1,Pandora dourado cravejado ,"R$ 45,00"
+12/06/2026,Débora igreja,1,Conjunto coração ,"R$ 102,00"
+30/06/2026,Anne ,1,Colar inspiração ,"R$ 45,00"`
+};
+
+const HEADERS = {
+  controle: ["Data","QUANTIDADE","PRODUTO","CUSTO","VALOR TOTAL","DESPESAS 25%","IMPOSTO 16%","LUCRO 130%","PREÇO VENDA","CUSTO PLATAFORMA 19%","VALOR VENDA ONLINE"],
+  vendas: ["Data","Nome","Quantidade","Produto","Valor"]
+};
+const FILES = {
+  controle: "Controle_Bijuteria_-_Controle.csv",
+  vendas: "Controle_Bijuteria_-_Vendas.csv",
+  invest: "Controle_Bijuteria_-_Valores_Investidos.csv"
+};
+const STORAGE_KEY = "controleBijuteria.v1";
+
+/* ---------- armazenamento seguro (fallback em memória) ---------- */
+const memStore = {};
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return memStore[k] ?? null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ memStore[k]=v;
+    document.getElementById("saveState").textContent = "salvo só nesta sessão"; } }
+};
+
+/* ---------- utilidades ---------- */
+function parseCSV(text){
+  const rows=[]; let row=[], field="", inQ=false;
+  text = text.replace(/\r\n?/g,"\n");
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c === '"'){ if(text[i+1] === '"'){ field+='"'; i++; } else inQ=false; }
+      else field+=c;
+    }else{
+      if(c === '"') inQ=true;
+      else if(c === ","){ row.push(field); field=""; }
+      else if(c === "\n"){ row.push(field); rows.push(row); row=[]; field=""; }
+      else field+=c;
+    }
+  }
+  if(field !== "" || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ""));
+}
+function csvCell(v){
+  v = String(v ?? "");
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function toCSV(rows){ return rows.map(r => r.map(csvCell).join(",")).join("\r\n"); }
+
+function parseBRL(s){
+  if(typeof s === "number") return s;
+  const n = parseFloat(String(s).replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",","."));
+  return isNaN(n) ? 0 : n;
+}
+function fmtBRL(n){
+  return "R$ " + n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+const round2 = n => Math.round(n*100)/100;
+
+function isoToBR(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+/* ---------- estado ---------- */
+let state;
+function defaultState(){
+  return {
+    controle: parseCSV(SEED.controle).slice(1),
+    vendas: parseCSV(SEED.vendas).slice(1),
+    invest: parseCSV(SEED.invest),
+    config: { despesas:25, imposto:16, lucro:150, plataforma:20 }
+  };
+}
+function load(){
+  const raw = store.get(STORAGE_KEY);
+  if(raw){ try{ state = JSON.parse(raw); return; }catch(e){} }
+  state = defaultState();
+}
+function save(){ store.set(STORAGE_KEY, JSON.stringify(state)); }
+
+/* ---------- cálculo do estoque ---------- */
+function calcControle(dataBR, qtd, produto, custo){
+  const c = state.config;
+  const despesas = round2(custo * c.despesas/100);
+  const imposto  = round2(custo * c.imposto/100);
+  const lucro    = round2(custo * c.lucro/100);
+  const preco    = round2(custo + despesas + imposto + lucro);
+  const plat     = round2(preco * c.plataforma/100);
+  const online   = round2(preco + plat);
+  return [dataBR, String(qtd), produto, fmtBRL(custo), fmtBRL(round2(custo*qtd)),
+          fmtBRL(despesas), fmtBRL(imposto), fmtBRL(lucro), fmtBRL(preco),
+          fmtBRL(plat), fmtBRL(online)];
+}
+
+/* ---------- render ---------- */
+const $ = s => document.querySelector(s);
+
+function renderStats(){
+  const investido = state.invest.reduce((s,r)=>s+parseBRL(r[1]),0);
+  const custoEstoque = state.controle.reduce((s,r)=>s+parseBRL(r[4]),0);
+  const pecas = state.controle.reduce((s,r)=>s+(parseInt(r[1])||0),0);
+  const vendido = state.vendas.reduce((s,r)=>s+parseBRL(r[4]),0);
+  const saldo = vendido - investido;
+  $("#stats").innerHTML = `
+    <div class="stat"><span>Investido</span><b>${fmtBRL(investido)}</b></div>
+    <div class="stat gold"><span>Estoque · ${pecas} peças</span><b>${fmtBRL(custoEstoque)}</b></div>
+    <div class="stat pos"><span>Vendido · ${state.vendas.length} vendas</span><b>${fmtBRL(vendido)}</b></div>
+    <div class="stat ${saldo>=0?"pos":""}"><span>Vendas − investido</span><b>${fmtBRL(saldo)}</b></div>`;
+}
+
+function renderTable(el, headers, rows, footer, listKey){
+  if(!rows.length){
+    el.innerHTML = "";
+    el.innerHTML = `<tbody><tr><td class="empty">Nenhum registro ainda — use o formulário acima para adicionar o primeiro.</td></tr></tbody>`;
+    return;
+  }
+  const numCols = headers.map((h,i)=> i>0 && rows.every(r=>/^(R\$|[\d.,\s-]+$)/.test(String(r[i]??"").trim()) ) );
+  let html = "<thead><tr>" + headers.map((h,i)=>`<th${numCols[i]?' class="num"':''}>${h}</th>`).join("") + "<th></th></tr></thead><tbody>";
+  rows.forEach((r,idx)=>{
+    html += "<tr>" + headers.map((h,i)=>`<td${numCols[i]?' class="num"':''}>${escapeHTML(r[i]??"")}</td>`).join("");
+    html += `<td class="num"><button class="del" title="Excluir linha" aria-label="Excluir linha" data-del="${listKey}:${idx}">✕</button></td></tr>`;
+  });
+  html += "</tbody>";
+  if(footer) html += `<tfoot><tr>${footer}</tr></tfoot>`;
+  el.innerHTML = html;
+}
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+function renderControle(){
+  const total = state.controle.reduce((s,r)=>s+parseBRL(r[4]),0);
+  const pecas = state.controle.reduce((s,r)=>s+(parseInt(r[1])||0),0);
+  renderTable($("#tblControle"), HEADERS.controle, state.controle,
+    `<td>Total</td><td class="num">${pecas}</td><td></td><td></td><td class="num">${fmtBRL(total)}</td><td colspan="7"></td>`,
+    "controle");
+}
+function renderVendas(){
+  const total = state.vendas.reduce((s,r)=>s+parseBRL(r[4]),0);
+  renderTable($("#tblVendas"), HEADERS.vendas, state.vendas,
+    `<td>Total</td><td></td><td class="num">${state.vendas.reduce((s,r)=>s+(parseInt(r[2])||0),0)}</td><td></td><td class="num">${fmtBRL(total)}</td><td></td>`,
+    "vendas");
+}
+function renderInvest(){
+  const total = state.invest.reduce((s,r)=>s+parseBRL(r[1]),0);
+  renderTable($("#tblInvest"), ["Descrição","Valor"], state.invest,
+    `<td>Total</td><td class="num">${fmtBRL(total)}</td><td></td>`,
+    "invest");
+}
+function renderProdutos(){
+  const set = new Set();
+  state.controle.forEach(r=>{ const p=(r[2]||"").trim(); if(p) set.add(p); });
+  $("#listaProdutos").innerHTML = [...set].sort().map(p=>`<option value="${escapeHTML(p)}">`).join("");
+}
+function renderAll(){ renderStats(); renderControle(); renderVendas(); renderInvest(); renderProdutos(); }
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600);
+}
+
+/* ---------- sincronização com Google Sheets (Apps Script) ---------- */
+const SYNC_KEY = "controleBijuteria.sync";
+let sync = { url:"", token:"" };
+try{ const s=store.get(SYNC_KEY); if(s) sync=JSON.parse(s); }catch(e){}
+
+function syncActive(){ return !!sync.url; }
+function setSyncStatus(txt, ok){
+  const el=$("#syncState"), local=$("#saveState");
+  if(!txt){ el.style.display="none"; local.style.display=""; return; }
+  el.textContent=txt; el.style.display=""; el.style.color = ok ? "var(--green)" : "var(--rose)";
+  local.style.display="none";
+}
+function rowsFor(key){
+  if(key==="controle") return [HEADERS.controle,...state.controle];
+  if(key==="vendas")   return [HEADERS.vendas,...state.vendas];
+  return state.invest;
+}
+async function apiPost(payload){
+  const res = await fetch(sync.url,{
+    method:"POST", redirect:"follow",
+    body: JSON.stringify({ token: sync.token, ...payload })
+    /* sem Content-Type JSON de propósito: evita bloqueio de CORS no Apps Script */
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  return data;
+}
+const pushTimers = {};
+function pushSheet(key){
+  if(!syncActive()) return;
+  clearTimeout(pushTimers[key]);
+  setSyncStatus("salvando na planilha…", true);
+  pushTimers[key]=setTimeout(async ()=>{
+    try{
+      await apiPost({ action:"replace", sheet:key, rows: rowsFor(key) });
+      setSyncStatus("✓ sincronizado com o Google Sheets", true);
+    }catch(err){
+      setSyncStatus("⚠ sem conexão — salvo só neste navegador", false);
+      toast("Não consegui gravar na planilha agora. Seus dados estão salvos aqui e você pode tentar de novo.");
+    }
+  }, 600);
+}
+function pushAll(){ ["controle","vendas","invest"].forEach(pushSheet); }
+
+async function pullAll(silent){
+  if(!syncActive()) return false;
+  try{
+    setSyncStatus("carregando da planilha…", true);
+    const res = await fetch(sync.url + "?token=" + encodeURIComponent(sync.token), {redirect:"follow"});
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    if(Array.isArray(data.controle)) state.controle = data.controle;
+    if(Array.isArray(data.vendas))   state.vendas   = data.vendas;
+    if(Array.isArray(data.invest))   state.invest   = data.invest;
+    save(); renderAll();
+    setSyncStatus("✓ sincronizado com o Google Sheets", true);
+    if(!silent) toast("Dados carregados da sua planilha");
+    return true;
+  }catch(err){
+    setSyncStatus("⚠ sem conexão — usando dados deste navegador", false);
+    if(!silent) toast("Não consegui conectar. Confira a URL e a senha (e se o script foi publicado para \"Qualquer pessoa\").");
+    return false;
+  }
+}
+
+$("#formSync").addEventListener("submit", async e=>{
+  e.preventDefault();
+  sync.url = $("#syUrl").value.trim();
+  sync.token = $("#syToken").value;
+  if(!sync.url){ toast("Cole a URL do App da Web."); return; }
+  store.set(SYNC_KEY, JSON.stringify(sync));
+  const ok = await pullAll(false);
+  refreshSyncUI(ok);
+});
+$("#syncOff").addEventListener("click",()=>{
+  sync={url:"",token:""};
+  store.set(SYNC_KEY, JSON.stringify(sync));
+  setSyncStatus("", true);
+  refreshSyncUI(false);
+  toast("Sincronização desligada — dados continuam salvos neste navegador");
+});
+function refreshSyncUI(connected){
+  $("#syUrl").value = sync.url;
+  $("#syToken").value = sync.token;
+  $("#syncOff").hidden = !syncActive();
+  $("#syncHint").textContent = syncActive()
+    ? (connected===false ? "" : "Conectado — alterações vão direto para a planilha.")
+    : "";
+}
+
+/* grava localmente, redesenha e envia a aba alterada para a planilha */
+function commit(key){ save(); renderAll(); pushSheet(key); }
+
+/* ---------- abas ---------- */
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t===tab ? "true":"false"));
+    document.querySelectorAll("section[role=tabpanel]").forEach(p=>p.hidden = p.id !== tab.getAttribute("aria-controls"));
+  });
+});
+
+/* ---------- formulários ---------- */
+$("#formControle").addEventListener("submit",e=>{
+  e.preventDefault();
+  const custo = parseBRL($("#ctCusto").value);
+  const qtd = parseInt($("#ctQtd").value)||1;
+  if(custo<=0){ toast("Informe um custo válido."); return; }
+  state.controle.push(calcControle(isoToBR($("#ctData").value), qtd, $("#ctProduto").value.trim(), custo));
+  commit("controle");
+  toast(`Peça adicionada: ${$("#ctProduto").value.trim()}`);
+  $("#ctProduto").value=""; $("#ctCusto").value=""; $("#ctQtd").value=1; updatePreview();
+  $("#ctProduto").focus();
+});
+
+function updatePreview(){
+  const custo=parseBRL($("#ctCusto").value);
+  const box=$("#ctPreview");
+  if(custo>0){
+    const r=calcControle("x",1,"x",custo);
+    box.innerHTML=`Preço venda: <b>${r[8]}</b> &nbsp;·&nbsp; Venda online: <b>${r[10]}</b>`;
+    box.classList.add("show");
+  }else box.classList.remove("show");
+}
+$("#ctCusto").addEventListener("input",updatePreview);
+
+$("#formVendas").addEventListener("submit",e=>{
+  e.preventDefault();
+  const valor=parseBRL($("#vdValor").value);
+  if(valor<=0){ toast("Informe um valor válido."); return; }
+  state.vendas.push([isoToBR($("#vdData").value), $("#vdNome").value.trim(),
+    String(parseInt($("#vdQtd").value)||1), $("#vdProduto").value.trim(), fmtBRL(valor)]);
+  commit("vendas");
+  toast(`Venda registrada: ${fmtBRL(valor)}`);
+  $("#vdNome").value=""; $("#vdProduto").value=""; $("#vdValor").value=""; $("#vdQtd").value=1;
+  $("#vdNome").focus();
+});
+
+$("#formInvest").addEventListener("submit",e=>{
+  e.preventDefault();
+  const valor=parseBRL($("#ivValor").value);
+  if(valor<=0){ toast("Informe um valor válido."); return; }
+  state.invest.push([$("#ivDesc").value.trim(), fmtBRL(valor)]);
+  commit("invest");
+  toast("Investimento adicionado");
+  $("#ivDesc").value=""; $("#ivValor").value="";
+});
+
+/* ---------- excluir linha ---------- */
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-del]");
+  if(!btn) return;
+  const [key,idx]=btn.dataset.del.split(":");
+  const nome = key==="controle" ? state.controle[+idx][2]
+             : key==="vendas" ? state.vendas[+idx][3]
+             : state.invest[+idx][0];
+  if(confirm(`Excluir "${(nome||"").trim()}"?`)){
+    state[key].splice(+idx,1);
+    commit(key);
+    toast("Linha excluída");
+  }
+});
+
+/* ---------- exportar / importar ---------- */
+function download(name,text){
+  const blob=new Blob(["\uFEFF"+text],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function exportKey(key){
+  let rows;
+  if(key==="controle") rows=[HEADERS.controle,...state.controle];
+  else if(key==="vendas") rows=[HEADERS.vendas,...state.vendas];
+  else rows=state.invest;
+  download(FILES[key], toCSV(rows));
+}
+document.querySelectorAll("[data-export]").forEach(b=>
+  b.addEventListener("click",()=>{ exportKey(b.dataset.export); toast("CSV baixado — suba este arquivo no GitHub"); }));
+$("#exportAll").addEventListener("click",()=>{
+  ["controle","vendas","invest"].forEach((k,i)=>setTimeout(()=>exportKey(k), i*350));
+  toast("Baixando os 3 CSVs…");
+});
+
+document.querySelectorAll("[data-import]").forEach(inp=>{
+  inp.addEventListener("change",()=>{
+    const file=inp.files[0]; if(!file) return;
+    const key=inp.dataset.import;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        let rows=parseCSV(reader.result.replace(/^\uFEFF/,""));
+        if(key!=="invest") rows=rows.slice(1); /* remove cabeçalho */
+        if(!rows.length) throw new Error("vazio");
+        state[key]=rows;
+        commit(key);
+        toast(`Importado: ${rows.length} linhas`);
+      }catch(err){ toast("Não foi possível ler este CSV."); }
+      inp.value="";
+    };
+    reader.readAsText(file,"utf-8");
+  });
+});
+
+/* ---------- config ---------- */
+const cfgMap={cfgDespesas:"despesas",cfgImposto:"imposto",cfgLucro:"lucro",cfgPlataforma:"plataforma"};
+function loadCfgInputs(){
+  Object.entries(cfgMap).forEach(([id,k])=>{ $("#"+id).value=state.config[k]; });
+}
+Object.entries(cfgMap).forEach(([id,k])=>{
+  $("#"+id).addEventListener("change",()=>{
+    state.config[k]=parseFloat($("#"+id).value)||0;
+    save(); updatePreview();
+    toast("Percentual atualizado (vale para itens novos)");
+  });
+});
+
+/* ---------- reset ---------- */
+$("#resetAll").addEventListener("click",()=>{
+  if(confirm("Isso apaga tudo que você adicionou e volta aos dados originais. Se estiver conectado, a planilha do Google também será sobrescrita. Continuar?")){
+    state=defaultState(); save(); loadCfgInputs(); renderAll(); pushAll();
+    toast("Dados originais restaurados");
+  }
+});
+
+/* ---------- init ---------- */
+load();
+loadCfgInputs();
+$("#ctData").value=todayISO();
+$("#vdData").value=todayISO();
+renderAll();
+refreshSyncUI(false);
+if(syncActive()) pullAll(true);
+</script>
+</body>
+</html>
