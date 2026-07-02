@@ -15,32 +15,27 @@ Sistema de página única (HTML + CSS + JavaScript, sem dependências) para gere
 
 ## Como funciona no dia a dia
 
-- Tudo que você digita é **salvo automaticamente no navegador** (localStorage). Pode fechar e abrir que os dados continuam lá, no mesmo aparelho.
+- **Nada fica salvo no navegador.** A página carrega os dados direto da planilha do Google ao abrir, e cada peça, venda ou investimento que você adicionar (ou excluir) é gravado na hora nas abas **Controle**, **Vendas** e **Valores Investidos** — de qualquer aparelho, sem precisar configurar nada.
 - O painel no topo mostra o resumo: total investido, custo do estoque, total vendido e o saldo.
-- Ao digitar o custo de uma peça nova, o preço de venda e o valor online são calculados na hora (os percentuais são configuráveis em "Percentuais de cálculo").
+- Ao digitar o custo de uma peça nova, o preço de venda e o valor online são calculados na hora (os percentuais são configuráveis em "Percentuais de cálculo", mas não são salvos — voltam ao padrão a cada visita).
+- Se a conexão com a planilha falhar ao abrir a página, um aviso aparece e é preciso recarregar (botão "↻ Recarregar da planilha") antes de adicionar itens, para não sobrescrever a planilha com dados incompletos.
 
-## Sincronização automática com o Google Sheets
+## Sincronização com o Google Sheets
 
-Com o arquivo `Code.gs` você conecta a página direto na sua planilha do Google: cada peça, venda ou investimento adicionado (ou excluído) é gravado na hora nas abas **Controle**, **Vendas** e **Valores Investidos** — de qualquer aparelho.
+A URL do App da Web e a senha já estão fixas dentro do `index.html` (bloco `Google Sheets`), então a sincronização funciona assim que a página abre — não é preciso colar nada.
 
-Configuração (uma vez só, leva ~5 minutos):
+**Atenção:** como a página é pública no GitHub Pages, qualquer pessoa que veja o código-fonte (`Ver código-fonte` no navegador) consegue ler essa URL e senha e usá-las para ler ou alterar sua planilha. Isso foi uma escolha deliberada para simplicidade de uso; se isso for um problema, o ideal é tornar o repositório privado (GitHub Pages exige plano pago para sites privados) ou trocar por um fluxo com login.
 
-1. Abra a planilha **Controle Bijuteria** no Google Sheets.
-2. Menu **Extensões → Apps Script**.
-3. Apague o código de exemplo e cole todo o conteúdo do arquivo `Code.gs`.
-4. Na linha `var SENHA = "troque-esta-senha";`, coloque uma senha sua.
-5. Clique em **Implantar → Nova implantação → tipo "App da Web"** e escolha:
-   - **Executar como:** Eu
-   - **Quem pode acessar:** Qualquer pessoa
-6. Autorize quando o Google pedir (aviso de "app não verificado" é normal: **Avançado → Acessar... (não seguro)** — o app é o seu próprio script).
-7. Copie a **URL do App da Web** (termina em `/exec`).
-8. Na página do Controle Bijuteria, role até **"Sincronizar com o Google Sheets"**, cole a URL e a senha e clique em **Conectar e sincronizar**.
+Caso precise reconfigurar (por exemplo, trocar de planilha ou senha):
 
-A partir daí o topo da página mostra "✓ sincronizado com o Google Sheets". Ao abrir a página, ela carrega os dados atuais da planilha; ao adicionar ou excluir algo, grava de volta automaticamente. Se ficar sem internet, os dados continuam salvos no navegador e um aviso aparece.
+1. Abra a planilha no Google Sheets → **Extensões → Apps Script** → cole o conteúdo de `Code.gs`.
+2. Troque a linha `var SENHA = "...";` por uma senha sua.
+3. **Implantar → Gerenciar implantações → editar (lápis)** → confirme **Executar como: Eu** e **Quem pode acessar: Qualquer pessoa** → **Implantar**.
+4. Autorize quando o Google pedir (aviso de "app não verificado" é normal: **Avançado → Acessar... (não seguro)** — o app é o seu próprio script). Se aparecer "This app is blocked" sem opção de avançar, é preciso vincular o Apps Script a um projeto próprio do Google Cloud (Configurações do projeto → Alterar projeto) e configurar a tela de consentimento OAuth com seu e-mail como usuário de teste.
+5. Copie a nova **URL do App da Web** (termina em `/exec`) e cole, junto com a senha, nas variáveis `sync.url` e `sync.token` dentro do `index.html`.
 
 Notas:
-- A senha impede que estranhos com a URL alterem sua planilha. Não use uma senha que você usa em outros lugares.
-- Se mudar o código do script depois, é preciso **Implantar → Gerenciar implantações → editar → Nova versão** para a mudança valer.
+- A senha impede que estranhos *sem o link do site* alterem sua planilha — mas não protege contra quem inspeciona o código-fonte da página pública (ver aviso acima).
 - Os nomes das abas na planilha precisam ser exatamente `Controle`, `Vendas` e `Valores Investidos`.
 
 ## Como atualizar os CSVs no GitHub (opcional)
