@@ -163,7 +163,7 @@
 <header class="wrap">
   <div class="brand">
     <h1>Controle Bijuteria</h1>
-    <small id="saveState">dados salvos neste navegador</small>
+    <small id="saveState">carregando da planilha…</small>
     <small id="syncState" style="display:none;color:var(--green);font-weight:600"></small>
   </div>
   <div class="hairline" aria-hidden="true"></div>
@@ -269,27 +269,19 @@
   </section>
 
   <div class="card" id="syncCard">
-    <h2>Sincronizar com o Google Sheets</h2>
-    <form class="grid" id="formSync" autocomplete="off">
-      <div class="field c12"><label for="syUrl">URL do App da Web (Apps Script)</label>
-        <input type="url" id="syUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
-      <div class="field c6 m12"><label for="syToken">Senha (a mesma definida no script)</label>
-        <input type="password" id="syToken" placeholder="senha do script"></div>
-      <div class="c12 btn-row">
-        <button type="submit" class="btn btn-gold">Conectar e sincronizar</button>
-        <button type="button" class="btn btn-ghost" id="syncOff" hidden>Desconectar</button>
-        <span class="hint" id="syncHint" style="margin:0"></span>
-      </div>
-    </form>
-    <p class="hint">Com a conexão ativa, cada peça, venda ou investimento que você adicionar (ou excluir) é gravado automaticamente na sua planilha do Google. As instruções de configuração estão no README do repositório.</p>
+    <h2>Google Sheets</h2>
+    <div class="btn-row">
+      <button type="button" class="btn btn-ghost" id="syncReload">↻ Recarregar da planilha</button>
+      <span class="hint" id="syncHint" style="margin:0"></span>
+    </div>
+    <p class="hint">Esta página está conectada à sua planilha do Google. Nada fica salvo neste navegador — cada peça, venda ou investimento que você adicionar (ou excluir) é gravado direto na planilha, e os dados exibidos aqui vêm sempre dela.</p>
   </div>
 
   <div class="card" style="border-style:dashed">
     <div class="btn-row">
       <button class="btn btn-gold" id="exportAll">⬇ Baixar os 3 CSVs</button>
-      <button class="btn btn-ghost" id="resetAll">Restaurar dados originais</button>
     </div>
-    <p class="hint">Para atualizar o GitHub: baixe os CSVs e substitua os arquivos no repositório. Tudo que você digita fica salvo automaticamente neste navegador.</p>
+    <p class="hint">Use os CSVs como backup manual, se quiser. A fonte oficial dos dados é a planilha do Google.</p>
   </div>
 
 </main>
@@ -301,67 +293,10 @@
 "use strict";
 /* =====================================================================
    Controle Bijuteria — página única (HTML+CSS+JS), sem dependências.
-   Dados persistem em localStorage; exporta/importa os mesmos CSVs
-   do Google Sheets original.
+   Fonte única dos dados: a planilha do Google Sheets (via Apps Script).
+   Nada é salvo no navegador — a página sempre carrega e grava direto
+   na planilha; exporta/importa os mesmos CSVs do Google Sheets original.
 ===================================================================== */
-
-/* ---------- dados originais (seed) ---------- */
-const SEED = {
-invest: `Investimento,"R$ 800,00"
-Frete,"R$ 60,00"`,
-controle: `Data,QUANTIDADE,PRODUTO,CUSTO,VALOR TOTAL,DESPESAS 25%,IMPOSTO 16%,LUCRO 130%,PREÇO VENDA,CUSTO PLATAFORMA 19%,VALOR VENDA ONLINE
-01/05/2026,1,Anel Folheado,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
-01/05/2026,1,Anel Cravejado Folheado ,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
-01/05/2026,1,Anel Cravejado Folheado Numeração,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
-01/05/2026,1,Anel Numeração,"R$ 12,00","R$ 12,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
-01/05/2026,1,Anel Relógio,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/05/2026,2,Bracelete Coral,"R$ 10,00","R$ 20,00","R$ 2,50","R$ 1,60","R$ 15,00","R$ 29,10","R$ 5,82","R$ 34,92"
-01/05/2026,1,Bracelete Com Flores,"R$ 10,00","R$ 10,00","R$ 2,50","R$ 1,60","R$ 15,00","R$ 29,10","R$ 5,82","R$ 34,92"
-01/05/2026,2,Riviera Pontas ,"R$ 20,00","R$ 40,00","R$ 5,00","R$ 3,20","R$ 30,00","R$ 58,20","R$ 11,64","R$ 69,84"
-01/05/2026,2,Colar Delicado,"R$ 16,00","R$ 32,00","R$ 4,00","R$ 2,56","R$ 24,00","R$ 46,56","R$ 9,31","R$ 55,87"
-01/05/2026,2,"Kit Pérola (brinco, colar e pulseira)","R$ 25,00","R$ 50,00","R$ 6,25","R$ 4,00","R$ 37,50","R$ 72,75","R$ 14,55","R$ 87,30"
-01/05/2026,1,"Kit Cravejado Folheado (brinco, colar e pulseira)","R$ 25,00","R$ 25,00","R$ 6,25","R$ 4,00","R$ 37,50","R$ 72,75","R$ 14,55","R$ 87,30"
-01/05/2026,2,Aro Delicado,"R$ 12,00","R$ 24,00","R$ 3,00","R$ 1,92","R$ 18,00","R$ 34,92","R$ 6,98","R$ 41,90"
-01/05/2026,2,Colar Aro,"R$ 16,00","R$ 32,00","R$ 4,00","R$ 2,56","R$ 24,00","R$ 46,56","R$ 9,31","R$ 55,87"
-01/05/2026,2,Colar Inspiração ,"R$ 15,00","R$ 30,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/05/2026,3,Colar Letras Cravejado,"R$ 15,00","R$ 45,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/05/2026,1,Kit Completo Aço Inoxidável,"R$ 30,00","R$ 30,00","R$ 7,50","R$ 4,80","R$ 45,00","R$ 87,30","R$ 17,46","R$ 104,76"
-01/06/2026,1,Brinco Pizza Dourado Pedra Branca ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Brinco Pizza Prata Pedra Branca ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Brinco Pizza Dourado Pedra Verde,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Brinco Coração Prata Pedra Verde ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Brinco Inspiração Dourado Pedra Verde,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Brinco Inspiração Dourado Pedra Branca ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,2,Brinco 2 Corações Verde Esmeralda ,"R$ 18,00","R$ 36,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Brinco 2 Corações Verde Claro,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Brinco 2 Corações Preto ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Brinco 2 Corações Vermelho ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Brinco 2 Corações Rosa ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Brinco Estilo 2 Pizza Prata Com Pedra Branca ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,3,Bracelete Mandamentos ,"R$ 18,00","R$ 54,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Bracelete Estilo Relógio ,"R$ 18,00","R$ 18,00","R$ 4,50","R$ 2,88","R$ 27,00","R$ 52,38","R$ 10,48","R$ 62,86"
-01/06/2026,1,Pandora Prata Coroa ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Pandora Dourado Coroa,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Pandora Cravejado Dourado ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Pandora Cravejado Prata ,"R$ 15,00","R$ 15,00","R$ 3,75","R$ 2,40","R$ 22,50","R$ 43,65","R$ 8,73","R$ 52,38"
-01/06/2026,1,Conjunto Color ,"R$ 35,00","R$ 35,00","R$ 8,75","R$ 5,60","R$ 52,50","R$ 101,85","R$ 20,37","R$ 122,22"
-01/06/2026,1,Conjunto Coração Riviera ,"R$ 35,00","R$ 35,00","R$ 8,75","R$ 5,60","R$ 52,50","R$ 101,85","R$ 20,37","R$ 122,22"`,
-vendas: `Data,Nome,Quantidade,Produto,Valor
-08/06/2026,Marli São Pedro ,1,Bracelete Mandamento ,"R$ 54,00"
-08/06/2026,Marli São Pedro ,1,Pulseira Pandora ,"R$ 45,00"
-08/06/2026,Ana Paula Belém ,1,Colar Letra Prata ,"R$ 45,00"
-08/06/2026,Sandra Appolari ,1,Brinco Cravejado Coração ,"R$ 52,50"
-08/06/2026,Marselha ,1,Anel Inspiração em X ,"R$ 35,00"
-08/06/2026,Nice ,1,Colar Letra Prata ,"R$ 45,00"
-08/06/2026,Patrícia ,1,Anel Cravejado ,"R$ 45,00"
-08/06/2026,Patrícia ,1,Pulseira Mandamentos ,"R$ 45,00"
-08/06/2026,Solange,1,Pulseira Mandamentos ,"R$ 54,00"
-11/06/2026,Patrícia Raissa ,1,Brinco 2 corações cravejado vermelho ,"R$ 52,50"
-11/06/2026,Fabiana estética ,1,Conjunto color ,"R$ 102,00"
-11/06/2026,Fernanda loira ,1,Pandora dourado cravejado ,"R$ 45,00"
-12/06/2026,Débora igreja,1,Conjunto coração ,"R$ 102,00"
-30/06/2026,Anne ,1,Colar inspiração ,"R$ 45,00"`
-};
 
 const HEADERS = {
   controle: ["Data","QUANTIDADE","PRODUTO","CUSTO","VALOR TOTAL","DESPESAS 25%","IMPOSTO 16%","LUCRO 130%","PREÇO VENDA","CUSTO PLATAFORMA 19%","VALOR VENDA ONLINE"],
@@ -372,16 +307,6 @@ const FILES = {
   vendas: "Controle_Bijuteria_-_Vendas.csv",
   invest: "Controle_Bijuteria_-_Valores_Investidos.csv"
 };
-const STORAGE_KEY = "controleBijuteria.v1";
-
-/* ---------- armazenamento seguro (fallback em memória) ---------- */
-const memStore = {};
-const store = {
-  get(k){ try{ return localStorage.getItem(k); }catch(e){ return memStore[k] ?? null; } },
-  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ memStore[k]=v;
-    document.getElementById("saveState").textContent = "salvo só nesta sessão"; } }
-};
-
 /* ---------- utilidades ---------- */
 function parseCSV(text){
   const rows=[]; let row=[], field="", inQ=false;
@@ -420,22 +345,18 @@ const round2 = n => Math.round(n*100)/100;
 function isoToBR(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
-/* ---------- estado ---------- */
+/* ---------- estado (vive só em memória; a planilha do Google é a fonte) ---------- */
 let state;
+let dataLoaded = false; /* só true depois de puxar com sucesso da planilha */
 function defaultState(){
   return {
-    controle: parseCSV(SEED.controle).slice(1),
-    vendas: parseCSV(SEED.vendas).slice(1),
-    invest: parseCSV(SEED.invest),
+    controle: [],
+    vendas: [],
+    invest: [],
     config: { despesas:25, imposto:16, lucro:150, plataforma:20 }
   };
 }
-function load(){
-  const raw = store.get(STORAGE_KEY);
-  if(raw){ try{ state = JSON.parse(raw); return; }catch(e){} }
-  state = defaultState();
-}
-function save(){ store.set(STORAGE_KEY, JSON.stringify(state)); }
+function load(){ state = defaultState(); }
 
 /* ---------- cálculo do estoque ---------- */
 function calcControle(dataBR, qtd, produto, custo){
@@ -518,10 +439,14 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600);
 }
 
-/* ---------- sincronização com Google Sheets (Apps Script) ---------- */
-const SYNC_KEY = "controleBijuteria.sync";
-let sync = { url:"", token:"" };
-try{ const s=store.get(SYNC_KEY); if(s) sync=JSON.parse(s); }catch(e){}
+/* ---------- sincronização com Google Sheets (Apps Script) ----------
+   URL e senha do App da Web ficam fixas aqui: esta página é de uso
+   pessoal e a planilha é a única fonte de dados (nada é salvo no
+   navegador). ---------------------------------------------------- */
+const sync = {
+  url: "https://script.google.com/macros/s/AKfycbzLKLwV6uGUhHJYCsOpl0ppK2hBKTYyfRDUSZDEc5Rp9cg1uAwUxtpkNOa-tokbzaa2VQ/exec",
+  token: "Mnermf16!@!"
+};
 
 function syncActive(){ return !!sync.url; }
 function setSyncStatus(txt, ok){
@@ -548,6 +473,10 @@ async function apiPost(payload){
 const pushTimers = {};
 function pushSheet(key){
   if(!syncActive()) return;
+  if(!dataLoaded){
+    toast("Aguarde os dados carregarem da planilha antes de fazer alterações.");
+    return;
+  }
   clearTimeout(pushTimers[key]);
   setSyncStatus("salvando na planilha…", true);
   pushTimers[key]=setTimeout(async ()=>{
@@ -555,13 +484,11 @@ function pushSheet(key){
       await apiPost({ action:"replace", sheet:key, rows: rowsFor(key) });
       setSyncStatus("✓ sincronizado com o Google Sheets", true);
     }catch(err){
-      setSyncStatus("⚠ sem conexão — salvo só neste navegador", false);
-      toast("Não consegui gravar na planilha agora. Seus dados estão salvos aqui e você pode tentar de novo.");
+      setSyncStatus("⚠ não foi possível gravar na planilha", false);
+      toast("Não consegui gravar na planilha agora. Verifique sua conexão e tente novamente.");
     }
   }, 600);
 }
-function pushAll(){ ["controle","vendas","invest"].forEach(pushSheet); }
-
 async function pullAll(silent){
   if(!syncActive()) return false;
   try{
@@ -572,44 +499,22 @@ async function pullAll(silent){
     if(Array.isArray(data.controle)) state.controle = data.controle;
     if(Array.isArray(data.vendas))   state.vendas   = data.vendas;
     if(Array.isArray(data.invest))   state.invest   = data.invest;
-    save(); renderAll();
+    dataLoaded = true;
+    renderAll();
     setSyncStatus("✓ sincronizado com o Google Sheets", true);
     if(!silent) toast("Dados carregados da sua planilha");
     return true;
   }catch(err){
-    setSyncStatus("⚠ sem conexão — usando dados deste navegador", false);
-    if(!silent) toast("Não consegui conectar. Confira a URL e a senha (e se o script foi publicado para \"Qualquer pessoa\").");
+    setSyncStatus("⚠ sem conexão com a planilha", false);
+    if(!silent) toast("Não consegui conectar com a planilha. Verifique sua internet e tente recarregar.");
     return false;
   }
 }
 
-$("#formSync").addEventListener("submit", async e=>{
-  e.preventDefault();
-  sync.url = $("#syUrl").value.trim();
-  sync.token = $("#syToken").value;
-  if(!sync.url){ toast("Cole a URL do App da Web."); return; }
-  store.set(SYNC_KEY, JSON.stringify(sync));
-  const ok = await pullAll(false);
-  refreshSyncUI(ok);
-});
-$("#syncOff").addEventListener("click",()=>{
-  sync={url:"",token:""};
-  store.set(SYNC_KEY, JSON.stringify(sync));
-  setSyncStatus("", true);
-  refreshSyncUI(false);
-  toast("Sincronização desligada — dados continuam salvos neste navegador");
-});
-function refreshSyncUI(connected){
-  $("#syUrl").value = sync.url;
-  $("#syToken").value = sync.token;
-  $("#syncOff").hidden = !syncActive();
-  $("#syncHint").textContent = syncActive()
-    ? (connected===false ? "" : "Conectado — alterações vão direto para a planilha.")
-    : "";
-}
+$("#syncReload").addEventListener("click", ()=> pullAll(false));
 
-/* grava localmente, redesenha e envia a aba alterada para a planilha */
-function commit(key){ save(); renderAll(); pushSheet(key); }
+/* redesenha e envia a aba alterada para a planilha (nada é salvo no navegador) */
+function commit(key){ renderAll(); pushSheet(key); }
 
 /* ---------- abas ---------- */
 document.querySelectorAll(".tab").forEach(tab=>{
@@ -729,17 +634,9 @@ function loadCfgInputs(){
 Object.entries(cfgMap).forEach(([id,k])=>{
   $("#"+id).addEventListener("change",()=>{
     state.config[k]=parseFloat($("#"+id).value)||0;
-    save(); updatePreview();
-    toast("Percentual atualizado (vale para itens novos)");
+    updatePreview();
+    toast("Percentual atualizado (vale para itens novos, só nesta sessão)");
   });
-});
-
-/* ---------- reset ---------- */
-$("#resetAll").addEventListener("click",()=>{
-  if(confirm("Isso apaga tudo que você adicionou e volta aos dados originais. Se estiver conectado, a planilha do Google também será sobrescrita. Continuar?")){
-    state=defaultState(); save(); loadCfgInputs(); renderAll(); pushAll();
-    toast("Dados originais restaurados");
-  }
 });
 
 /* ---------- init ---------- */
@@ -748,8 +645,7 @@ loadCfgInputs();
 $("#ctData").value=todayISO();
 $("#vdData").value=todayISO();
 renderAll();
-refreshSyncUI(false);
-if(syncActive()) pullAll(true);
+pullAll(true);
 </script>
 </body>
 </html>
